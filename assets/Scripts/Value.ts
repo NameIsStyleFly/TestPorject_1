@@ -11,8 +11,8 @@ export class Value{
     public maxValue:number =0;
     public minValue:number = 0;
     public percentValues:PercentValue[] = [];
-    public oldBasicValue:number =0;
     public currentEqualsBasic:boolean = false;
+    public oldBasicValue:number = 0;
 
     public InitFromBasicTable(_currentEqualsBasic:boolean,_originalValue:number,_otherValues:number[],_basicValue:number,_currentValue:number,_maxValue:number,_minValue:number,_percentValues:PercentValue[]):void
     {
@@ -53,35 +53,41 @@ export class Value{
         this.otherValues.forEach((val,idx,array)=>{
             this.basicValue +=val;
         });
-        //this.oldBasicValue = this.basicValue;
+        
+        var tempOldBasicValue = this.basicValue;
         for(var i:number =0;i<this.percentValues.length;i++)
         {
-            var tempNum:number = this.basicValue * this.percentValues[i].GetOriginalValue();
+            var tempNum:number = this.basicValue * this.percentValues[i].GetValidValue();
             this.basicValue += tempNum;
-            var offset:number = this.AdjustBasicValue();
-            if(!(this.currentEqualsBasic))
-            {
-                var increasementPercent:number = (this.basicValue- this.oldBasicValue)/this.oldBasicValue;
-                console.log(`increasementPercent: ${increasementPercent}\ncurrentValue: ${this.currentValue}`);
-                if(increasementPercent>0)
-                {
-                    this.currentValue  += this.currentValue * increasementPercent ;
-                    
-                }
-                else{
-                    this.AdjustCurrentValue();
-                }
-            }
+            var offset:number = this.AdjustBasicValue(tempOldBasicValue);
+            
             if(offset != 0)
             {
-                this.percentValues[i].SetValidValue(offset/this.oldBasicValue);
+                this.percentValues[i].SetValidValue(offset/tempOldBasicValue);
             }
-            this.oldBasicValue = this.basicValue;
+            tempOldBasicValue = this.basicValue;
         }
         if(this.currentEqualsBasic)
         {
             this.currentValue = this.basicValue;
         }
+        else{
+            var increasementPercent:number = (this.basicValue- this.oldBasicValue)/this.oldBasicValue;
+            console.log("Test");
+            console.log(`increasementPercent: ${increasementPercent}\ncurrentValue: ${this.currentValue}`);
+            console.log(`oldBasicValue: ${this.oldBasicValue}\nBasicValue: ${this.basicValue}`);
+            if(increasementPercent>0)
+            {
+                this.currentValue  += this.currentValue * increasementPercent ;
+                this.AdjustCurrentValue();
+            }
+            else{
+                this.AdjustCurrentValue();
+            }
+            console.log(`Changed currentValue: ${this.currentValue}`);
+            this.oldBasicValue = this.basicValue;
+        }
+        
     }
 
     private AdjustCurrentValue():void
@@ -96,13 +102,13 @@ export class Value{
         }
     }
 
-    private AdjustBasicValue():number
+    private AdjustBasicValue(tempOldBasicValue:number):number
     {
         
         var tempNum:number = 0;
         if(this.basicValue >this.maxValue)
         {
-            tempNum = this.maxValue - this.oldBasicValue;
+            tempNum = this.maxValue - tempOldBasicValue;
             this.basicValue = this.maxValue;
         }
         else if(this.basicValue <this.minValue)
@@ -136,6 +142,10 @@ export class Value{
                 array.splice(idx,1);
             }
         })
+        console.log("**************************************");
+        console.log('CurrentValue：'+this.currentValue);
+        console.log('BasicValue：'+this.basicValue);
+        console.log("**************************************");
         this.UpdateValue();
     }
 }
