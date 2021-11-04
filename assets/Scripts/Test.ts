@@ -28,7 +28,7 @@ export class Test extends Component {
     update (deltaTime: number) {
         // [4]
         this.health.ValueTimerCount(deltaTime);
-
+        
         this.onSpaceButtonDown();
     }
 
